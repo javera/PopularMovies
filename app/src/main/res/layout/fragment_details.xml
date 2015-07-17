@@ -1,0 +1,99 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              tools:context="com.mjaworski1988.popularmovies.DetailsFragment"
+              android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/material_deep_teal_500"
+        android:gravity="center_vertical"
+        android:paddingTop="@dimen/padding_normal"
+        android:paddingBottom="@dimen/padding_large"
+        android:paddingLeft="@dimen/padding_normal"
+        android:paddingRight="@dimen/padding_normal"
+        android:shadowColor="@color/material_deep_teal_200"
+        android:text="Film title"
+        android:textColor="@color/abc_primary_text_material_dark"
+        android:textSize="@dimen/abc_text_size_display_2_material"
+        android:id="@+id/details_title"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:orientation="horizontal"
+        android:paddingTop="@dimen/padding_small"
+        android:paddingBottom="@dimen/padding_small">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:src="@drawable/abc_ratingbar_full_material"
+            android:layout_gravity="center_vertical"
+            android:layout_weight="1"
+            android:layout_marginLeft="@dimen/padding_normal"
+            android:layout_marginRight="@dimen/padding_normal"
+            android:id="@+id/details_img_poster"/>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2015"
+                android:id="@+id/details_year"
+                android:layout_marginBottom="@dimen/padding_extra_small"
+                android:textSize="@dimen/abc_text_size_headline_material"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="120min"
+                android:id="@+id/details_min"
+                android:textStyle="italic"
+                android:layout_marginBottom="@dimen/padding_extra_small"
+                android:visibility="gone"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="6.1/10"
+                android:id="@+id/details_rating"
+                android:textStyle="bold"
+                android:layout_marginBottom="@dimen/padding_extra_small"/>
+
+            <Button
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mark as\nfavourite"
+                android:id="@+id/details_btn_fav"
+                android:singleLine="false"
+                android:background="@color/material_deep_teal_200"
+                android:textColor="@color/abc_primary_text_material_dark"
+                android:paddingLeft="@dimen/padding_extra_small"
+                android:paddingRight="@dimen/padding_extra_small"
+                android:textSize="@dimen/abc_text_size_caption_material"
+                />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="&quot;Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.&quot;  "
+        android:id="@+id/details_overview"
+        android:layout_gravity="center_horizontal"
+        android:padding="@dimen/padding_small"/>
+
+</LinearLayout>

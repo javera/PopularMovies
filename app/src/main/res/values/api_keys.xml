@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="tmdb_api_key">[UPDATE API KEY IN api_keys.xml]</string>
+    <string name="tmdb_api_key">95cb6ed1440c11d1e9e11f5b1f9d4564</string>
 </resources>

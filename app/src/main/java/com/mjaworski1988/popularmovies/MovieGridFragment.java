@@ -1,5 +1,6 @@
 package com.mjaworski1988.popularmovies;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,8 +12,9 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.ImageView;
+
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -50,8 +52,10 @@ public class MovieGridFragment extends Fragment {
         mMovieGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                Toast.makeText(getActivity(), "" + position,
-                        Toast.LENGTH_SHORT).show();
+                MovieEntry touchedElement = (MovieEntry) parent.getItemAtPosition(position);
+                Intent detailsIntent = new Intent(getActivity(), DetailsActivity.class);
+                detailsIntent.putExtra(MovieEntry.EXTRA_MOVIE_ENTRY, touchedElement);
+                startActivity(detailsIntent);
             }
         });
 
@@ -100,7 +104,7 @@ public class MovieGridFragment extends Fragment {
 
             try {
                 // Construct the URL for the OpenWeatherMap query
-                final String URL_BASE = "https://api.themoviedb.org/3/movie/popular/";
+                final String URL_BASE = "https://api.themoviedb.org/3/movie/popular";
                 final String PARAM_API = "api_key";
 
                 Uri.Builder builder = Uri.parse(URL_BASE).buildUpon()
@@ -191,7 +195,7 @@ public class MovieGridFragment extends Fragment {
     private class MovieGridAdapter extends BaseAdapter {
 
 
-        private List<MovieEntry> mMovieEntryList;
+        private List<MovieEntry> mMovieEntryList = new ArrayList<>();
 
         public void clear() {
             if (mMovieEntryList != null) {
@@ -201,38 +205,34 @@ public class MovieGridFragment extends Fragment {
 
         @Override
         public int getCount() {
-            return 0;
+            return mMovieEntryList.size();
         }
 
         @Override
         public Object getItem(int position) {
-            return null;
+            return mMovieEntryList.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            return 0;
+            return mMovieEntryList.get(position).getId();
         }
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            TextView view = new TextView(getActivity());
-            view.setText(mMovieEntryList.get(position).getTitle());
-            return view;
-//            ImageView imageView;
-//            if (convertView == null) {
-//                // if it's not recycled, initialize some attributes
-//                imageView = new ImageView(getActivity());
-//                imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-//                imageView.setPadding(8, 8, 8, 8);
-//                imageView.setBackgroundColor(getActivity().getResources().getColor(R.color.material_deep_teal_500));
-//                imageView.setMaxHeight(100);
-//            } else {
-//                imageView = (ImageView) convertView;
-//            }
-//
-////            imageView.setImageResource(mThumbIds[position]);
-//            return imageView;
+            ImageView imageView;
+            if (convertView == null) {
+                // if it's not recycled, initialize some attributes
+                imageView = new ImageView(getActivity());
+                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                imageView.setPadding(1,1,1,1);
+                imageView.setAdjustViewBounds(true);
+            } else {
+                imageView = (ImageView) convertView;
+            }
+
+            Picasso.with(getActivity()).load(mMovieEntryList.get(position).getPosterPath()).into(imageView);
+            return imageView;
         }
 
         public void addAll(List<MovieEntry> movieEntries) {
