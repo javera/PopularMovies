@@ -66,7 +66,7 @@ public class MovieGridFragment extends Fragment {
      */
     private void refreshList() {
         Log.d(LOG_TAG, "Refreshing movies");
-        new FetchMovieDataTask(mMovieAdapter).execute();
+        new FetchMovieDataTask().execute();
     }
 
     /**
@@ -76,9 +76,7 @@ public class MovieGridFragment extends Fragment {
      */
     private String getSortOrderFromPreferences() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sortOrder = sharedPref.getString(getString(R.string.pref_sort_order_key),
-                getString(R.string.pref_sort_order_popularity));
-        return sortOrder;
+        return sharedPref.getString(getString(R.string.pref_sort_order_key), getString(R.string.pref_sort_order_popularity));
     }
 
     @Override
@@ -113,10 +111,8 @@ public class MovieGridFragment extends Fragment {
      */
     public class FetchMovieDataTask extends AsyncTask<Void, Void, List<MovieEntry>> {
         private final String LOG_TAG = FetchMovieDataTask.class.getSimpleName();
-        private MovieGridAdapter movieAdapter;
 
-        public FetchMovieDataTask(MovieGridAdapter movieAdapter) {
-            this.movieAdapter = movieAdapter;
+        public FetchMovieDataTask() {
         }
 
         private String getAPIKey() {
@@ -125,14 +121,18 @@ public class MovieGridFragment extends Fragment {
 
         @Override
         protected void onPreExecute() {
-            movieAdapter.clear();
+            // clear the current list of films
+            mMovieAdapter.clear();
             super.onPreExecute();
         }
 
         @Override
         protected void onPostExecute(List<MovieEntry> movieEntries) {
-            movieAdapter.addAll(movieEntries);
-            movieAdapter.notifyDataSetChanged();
+            // just finished fetching and parsing JSON movie data, pass it to the adapter
+            if (movieEntries != null && movieEntries.size() > 0) {
+                mMovieAdapter.addAll(movieEntries);
+                mMovieAdapter.notifyDataSetChanged();
+            }
             super.onPostExecute(movieEntries);
         }
 
@@ -146,7 +146,6 @@ public class MovieGridFragment extends Fragment {
 
             // Will contain the raw JSON response as a string.
             String moviesJsonStr;
-            // Will contain parsed
             List<MovieEntry> moviesDetails;
 
             try {
@@ -154,20 +153,24 @@ public class MovieGridFragment extends Fragment {
                 final String URL_BASE = "https://api.themoviedb.org/3/discover/movie?";
                 final String PARAM_API = "api_key";
                 final String PARAM_SORT = "sort_by";
+
+                // since we don't want to get all the movies reviewed by 1 person that have 10/10 rating,
+                // we only accept movies with at least a few votes
                 final String PARAM_VOTE_COUNT = "vote_count.gte";
                 final int VOTE_COUNT_THRESHOLD = 30;
 
-                String sortOrder = getSortOrderFromPreferences();
-                setCurrentSortOrder(sortOrder);
+                // update sort order in the fragment (used to display the right header)
+                String sortOrderFromPreferences = getSortOrderFromPreferences();
+                setCurrentSortOrder(sortOrderFromPreferences);
 
                 Uri.Builder builder = Uri.parse(URL_BASE).buildUpon()
                         .appendQueryParameter(PARAM_API, getAPIKey())
-                        .appendQueryParameter(PARAM_SORT, sortOrder)
+                        .appendQueryParameter(PARAM_SORT, sortOrderFromPreferences)
                         .appendQueryParameter(PARAM_VOTE_COUNT, Integer.toString(VOTE_COUNT_THRESHOLD));
 
                 URL url = new URL(builder.build().toString());
 
-                Log.v(LOG_TAG, url.toString());
+                Log.v(LOG_TAG, "Fetching movies task with url: " + url.toString());
                 // Create the request to tmdb.org, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -194,13 +197,15 @@ public class MovieGridFragment extends Fragment {
                     // Stream was empty.  No point in parsing.
                     return null;
                 }
-                moviesJsonStr = buffer.toString();
 
+                // write the request to a variable
+                moviesJsonStr = buffer.toString();
+                // parse the JSON data
                 moviesDetails = getMovieDetailsFromJSON(moviesJsonStr);
 
             } catch (IOException e) {
                 Log.e(LOG_TAG, "Error ", e);
-                // If the code didn't successfully get the movie data, there's no point in attemping
+                // If the code didn't successfully get the movie data, there's no point in attempting
                 // to parse it.
                 return null;
             } catch (JSONException e) {
@@ -227,18 +232,21 @@ public class MovieGridFragment extends Fragment {
                 throws JSONException {
             List<MovieEntry> movieDetailsList = new ArrayList<>();
 
-            // These are the names of the JSON objects that need to be extracted.
+            // All the films are stored one by one in a JSON array with the following name:
             final String TMDB_MOVIES_ARRAY = "results";
 
+            // the whole TMDB response converted to JSONObject
             JSONObject jsonObjFromTMDB = new JSONObject(moviesJsonStr);
+            // just interested in the list (array) of films in JSON response
             JSONArray jsonArrayOfMovies = jsonObjFromTMDB.getJSONArray(TMDB_MOVIES_ARRAY);
 
+            // for each entry in the JSON array, create a MovieEntry object
             for (int i = 0; i < jsonArrayOfMovies.length(); i++) {
-                JSONObject movie = jsonArrayOfMovies.getJSONObject(i);
+                JSONObject movieJSON = jsonArrayOfMovies.getJSONObject(i);
                 try {
-                    movieDetailsList.add(new MovieEntry(movie));
+                    movieDetailsList.add(new MovieEntry(movieJSON));
                 } catch (JSONException e) {
-                    Log.d(LOG_TAG, "error parsing JSON ");
+                    Log.e(LOG_TAG, "error parsing JSON ");
                 }
 
             }
@@ -250,7 +258,6 @@ public class MovieGridFragment extends Fragment {
 
     private class MovieGridAdapter extends BaseAdapter {
 
-
         private List<MovieEntry> mMovieEntryList = new ArrayList<>();
 
         public void clear() {
@@ -261,17 +268,29 @@ public class MovieGridFragment extends Fragment {
 
         @Override
         public int getCount() {
-            return mMovieEntryList.size();
+            if (mMovieEntryList != null) {
+                return mMovieEntryList.size();
+            }
+
+            return 0;
         }
 
         @Override
         public Object getItem(int position) {
-            return mMovieEntryList.get(position);
+            if (mMovieEntryList != null) {
+                return mMovieEntryList.get(position);
+            }
+
+            return null;
         }
 
         @Override
         public long getItemId(int position) {
-            return mMovieEntryList.get(position).getId();
+            if (mMovieEntryList != null && mMovieEntryList.get(position) != null) {
+                return mMovieEntryList.get(position).getId();
+            }
+
+            return -1;
         }
 
         @Override
@@ -281,7 +300,6 @@ public class MovieGridFragment extends Fragment {
                 // if it's not recycled, initialize some attributes
                 imageView = new ImageView(getActivity());
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                imageView.setPadding(1, 1, 1, 1);
                 imageView.setAdjustViewBounds(true);
             } else {
                 imageView = (ImageView) convertView;
@@ -292,7 +310,9 @@ public class MovieGridFragment extends Fragment {
         }
 
         public void addAll(List<MovieEntry> movieEntries) {
-            mMovieEntryList.addAll(movieEntries);
+            if (movieEntries != null) {
+                mMovieEntryList.addAll(movieEntries);
+            }
         }
     }
 }

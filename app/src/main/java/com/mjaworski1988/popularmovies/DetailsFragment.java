@@ -16,8 +16,6 @@ import com.squareup.picasso.Picasso;
  */
 public class DetailsFragment extends Fragment {
 
-    private MovieEntry mMovieEntry;
-
     public DetailsFragment() {
     }
 
@@ -29,7 +27,7 @@ public class DetailsFragment extends Fragment {
         // Get the movie entry from the intent
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra(MovieEntry.EXTRA_MOVIE_ENTRY)) {
-            mMovieEntry = intent.getParcelableExtra(MovieEntry.EXTRA_MOVIE_ENTRY);
+            MovieEntry mMovieEntry = intent.getParcelableExtra(MovieEntry.EXTRA_MOVIE_ENTRY);
 
             TextView title = (TextView) rootView.findViewById(R.id.details_title);
             title.setText(mMovieEntry.getTitle());

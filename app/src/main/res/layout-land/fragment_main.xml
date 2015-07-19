@@ -1,20 +1,18 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivityFragment">
-
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context=".MainActivityFragment">
 
     <GridView
         android:id="@+id/grid_movie_posters"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center_vertical"
-        android:numColumns="2"
-        android:verticalSpacing="1dp"
-        android:horizontalSpacing="1dp"
         android:gravity="fill"
+        android:horizontalSpacing="1dp"
+        android:numColumns="4"
+        android:verticalSpacing="1dp"
         />
-
 
 </FrameLayout>
