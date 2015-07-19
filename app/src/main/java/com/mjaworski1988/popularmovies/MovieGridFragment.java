@@ -1,9 +1,11 @@
 package com.mjaworski1988.popularmovies;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -33,22 +35,65 @@ import java.util.List;
  * Used to display a grid of movie posters
  */
 public class MovieGridFragment extends Fragment {
-    private GridView mMovieGrid;
+
+    // log constant
+    private static final String LOG_TAG = MovieGridFragment.class.getSimpleName();
+
+    private MovieGridAdapter mMovieAdapter;
+    private String currentSortOrder;
 
     public MovieGridFragment() {
+    }
+
+    public void setCurrentSortOrder(String currentSortOrder) {
+        this.currentSortOrder = currentSortOrder;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        // if current sort order is different from the one in app settings, it means the user has just changed it,
+        // need to refresh the list of films
+        if (currentSortOrder != null && !currentSortOrder.equals(getSortOrderFromPreferences())) {
+            Log.d(LOG_TAG, "Settings changed, refreshing task");
+            refreshList();
+        }
+    }
+
+    /**
+     * Start async task to load movie posters and their details
+     */
+    private void refreshList() {
+        Log.d(LOG_TAG, "Refreshing movies");
+        new FetchMovieDataTask(mMovieAdapter).execute();
+    }
+
+    /**
+     * Retrieve the sort order from app settings
+     *
+     * @return movie sort order, taken from app settings
+     */
+    private String getSortOrderFromPreferences() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortOrder = sharedPref.getString(getString(R.string.pref_sort_order_key),
+                getString(R.string.pref_sort_order_popularity));
+        return sortOrder;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        // inflate the view
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        mMovieGrid = (GridView) rootView.findViewById(R.id.grid_movie_posters);
-        MovieGridAdapter movieAdapter = new MovieGridAdapter();
-        mMovieGrid.setAdapter(movieAdapter);
+        // get reference to the grid view, then set up the adapter
+        GridView mMovieGrid = (GridView) rootView.findViewById(R.id.grid_movie_posters);
+        mMovieAdapter = new MovieGridAdapter();
+        mMovieGrid.setAdapter(mMovieAdapter);
 
-        new FetchMovieDataTask(movieAdapter).execute();
-
+        // start an async task to load movie posters
+        refreshList();
         mMovieGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
@@ -63,10 +108,12 @@ public class MovieGridFragment extends Fragment {
 
     }
 
+    /**
+     * Retrieves movie data from TMDB, then loads the poster images into image views using Picasso library
+     */
     public class FetchMovieDataTask extends AsyncTask<Void, Void, List<MovieEntry>> {
         private final String LOG_TAG = FetchMovieDataTask.class.getSimpleName();
-
-        MovieGridAdapter movieAdapter;
+        private MovieGridAdapter movieAdapter;
 
         public FetchMovieDataTask(MovieGridAdapter movieAdapter) {
             this.movieAdapter = movieAdapter;
@@ -104,11 +151,19 @@ public class MovieGridFragment extends Fragment {
 
             try {
                 // Construct the URL for the OpenWeatherMap query
-                final String URL_BASE = "https://api.themoviedb.org/3/movie/popular";
+                final String URL_BASE = "https://api.themoviedb.org/3/discover/movie?";
                 final String PARAM_API = "api_key";
+                final String PARAM_SORT = "sort_by";
+                final String PARAM_VOTE_COUNT = "vote_count.gte";
+                final int VOTE_COUNT_THRESHOLD = 30;
+
+                String sortOrder = getSortOrderFromPreferences();
+                setCurrentSortOrder(sortOrder);
 
                 Uri.Builder builder = Uri.parse(URL_BASE).buildUpon()
-                        .appendQueryParameter(PARAM_API, getAPIKey());
+                        .appendQueryParameter(PARAM_API, getAPIKey())
+                        .appendQueryParameter(PARAM_SORT, sortOrder)
+                        .appendQueryParameter(PARAM_VOTE_COUNT, Integer.toString(VOTE_COUNT_THRESHOLD));
 
                 URL url = new URL(builder.build().toString());
 
@@ -166,6 +221,7 @@ public class MovieGridFragment extends Fragment {
             }
             return moviesDetails;
         }
+
 
         private List<MovieEntry> getMovieDetailsFromJSON(String moviesJsonStr)
                 throws JSONException {
@@ -225,7 +281,7 @@ public class MovieGridFragment extends Fragment {
                 // if it's not recycled, initialize some attributes
                 imageView = new ImageView(getActivity());
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                imageView.setPadding(1,1,1,1);
+                imageView.setPadding(1, 1, 1, 1);
                 imageView.setAdjustViewBounds(true);
             } else {
                 imageView = (ImageView) convertView;

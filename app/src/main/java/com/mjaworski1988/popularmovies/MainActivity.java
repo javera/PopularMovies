@@ -1,7 +1,10 @@
 package com.mjaworski1988.popularmovies;
 
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -11,6 +14,30 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setHeadline();
+    }
+
+    /**
+     * Used to set the sort order in the action bar
+     */
+    private void setHeadline() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+
+        // get the sort order from app settings (default to 'most popular')
+        String sortOrderFromPrefs = sharedPref.getString(getString(R.string.pref_sort_order_key),
+                getString(R.string.pref_sort_order_popularity));
+
+        // set the header accordingly
+        if (sortOrderFromPrefs.contentEquals(getString(R.string.pref_sort_order_popularity))) {
+            setTitle(R.string.header_movie_by_popularity);
+        } else {
+            setTitle(R.string.header_movie_by_ranking);
+        }
     }
 
 
@@ -30,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent settingsIntent = new Intent(this, SettingsActivity.class);
+            startActivity(settingsIntent);
             return true;
         }
 

@@ -43,7 +43,6 @@ public class DetailsFragment extends Fragment {
             ImageView poster = (ImageView) rootView.findViewById(R.id.details_img_poster);
             Picasso.with(getActivity()).load(mMovieEntry.getPosterPath()).into(poster);
 
-
         }
 
         return rootView;
